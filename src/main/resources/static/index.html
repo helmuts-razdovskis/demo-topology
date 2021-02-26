@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Device demo</title>
+    <script src="jquery-3.5.1.min.js" ></script>
+    <style>
+        header {padding: 3px 5px 5px 3px;}
+    </style>
+</head>
+<body style="font-family: sans-serif">
+
+<div style="display: flex; height: 600px">
+<div style="flex: 30%">
+
+<header>Find device (empty: find all)</header>
+<input type="text" id="find_device" />
+<button id="find">Find device</button>
+
+<header>Topology (empty: find all)</header>
+<input type="text" id="topology_device" />
+<button id="topology">Get topology</button>
+
+<header>Device</header>
+    <div>
+<select id="device_type" >
+    <option>Gateway</option>
+    <option>Switch</option>
+    <option>Access Point</option>
+</select>
+    </div>
+    <div>
+<input type="text" id="device_address" />
+        <label for="device_address">Address</label>
+    </div>
+    <div>
+<input type="text" id="device_uplink" />
+        <label for="device_uplink">Uplink</label>
+    </div>
+    <div><button id="add_device">Add device</button></div>
+</div>
+    <div style="flex: 70%">
+        <textarea id="results" style="width: 100%; height: 100%;"></textarea>
+    </div>
+</div>
+<script lang="text/javascript">
+    function retrieve(url) {
+        $.ajax("http://localhost:8080" + url, {
+            success: function (data) {
+                $("#results").val(JSON.stringify(data, null, 2))
+            },
+            error: function (error) {
+                $("#results").val(JSON.stringify(error.responseJSON, null, 2))
+            }})
+    }
+    $(function() {
+        $("#find").on("click", function () {
+            var url = "/devices/";
+            if ($("#find_device").val())
+                url += $("#find_device").val()
+            retrieve(url)
+        })
+        $("#topology").on("click", function () {
+            var url = "/topology/";
+            if ($("#topology_device").val())
+                url += $("#topology_device").val()
+            retrieve(url)
+        })
+        $("#add_device").on("click", function () {
+            var payload = {}
+            payload["deviceType"] = $("#device_type").val()
+            payload["address"] = $("#device_address").val()
+            if ($("#device_uplink").val())
+                payload["uplink"] = $("#device_uplink").val()
+            $.ajax({
+                url: '/devices',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                dataType: 'json',
+                success: function (data, status) {
+                    $("#results").val(status) //data.headers.get("location"))
+                },
+                error: function (error) {
+                    $("#results").val(JSON.stringify(error.responseJSON, null, 2))
+                }
+            })
+        })
+    })
+</script>
+</body>
+</html>
